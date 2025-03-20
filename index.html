@@ -1,10 +1,154 @@
-
 <!DOCTYPE html>
 <html>
-    <h1>
-        "My Name is Giovanni Georgio"
-        </h1>
-    <p>
-        "But everybody calls me GEORGEO..."
-        </p>
+<head>
+    <title>Meme Coin Madness</title>
+    <style>
+        body { 
+            font-family: Comic Sans MS; 
+            background: #1a1a1a; 
+            color: #00ff00;
+        }
+        #game {
+            max-width: 600px;
+            margin: auto;
+            border: 3px solid #ff00ff;
+            padding: 20px;
+        }
+        button { 
+            background: #000; 
+            color: #0f0;
+            border: 2px solid #0f0;
+            margin: 5px;
+            padding: 8px;
+            cursor: pointer;
+        }
+        .red { color: #ff0000; }
+        .green { color: #00ff00; }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <h1>🚀 Meme Coin Madness 🚀</h1>
+        <p>Cash: $<span id="cash">10000</span></p>
+        <p>Day: <span id="day">1</span></p>
+        <p>Debt: $<span id="debt">0</span> (55% daily interest!)</p>
+        <div id="coins"></div>
+        <button onclick="nextDay()">Next Day 🌗</button>
+        <button onclick="takeLoan()">Loan Shark 🦈</button>
+        <button onclick="hireTiktokers()">Hire TikTokers (50% pump) 📱</button>
+        <button onclick="hackExchange()">Hack Exchange 🎮</button>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let player = {
+            cash: 10000,
+            debt: 0,
+            day: 1,
+            coins: {
+                'DogeElonMars': { price: 0.5, qty: 0 },
+                'ShibaKaren': { price: 0.3, qty: 0 },
+                'ScamCoin': { price: 10, qty: 0 },
+                'RugPullToken': { price: 100, qty: 0 }
+            }
+        };
+
+        function updateDisplay() {
+            document.getElementById('cash').textContent = player.cash.toFixed(2);
+            document.getElementById('day').textContent = player.day;
+            document.getElementById('debt').textContent = player.debt.toFixed(2);
+            
+            let coinsHtml = '';
+            for(let coin in player.coins) {
+                coinsHtml += `
+                    <div>
+                        ${coin}: $${player.coins[coin].price.toFixed(4)}
+                        <button onclick="buyCoin('${coin}')">Buy</button>
+                        <button onclick="sellCoin('${coin}')">Sell</button>
+                        Owned: ${player.coins[coin].qty}
+                    </div>`;
+            }
+            document.getElementById('coins').innerHTML = coinsHtml;
+        }
+
+        function log(msg, color='green') {
+            document.getElementById('log').innerHTML = 
+                `<span class="${color}">${msg}</span><br>` + 
+                document.getElementById('log').innerHTML;
+        }
+
+        function manipulatePrices() {
+            for(let coin in player.coins) {
+                const manipulation = Math.random() > 0.5 ? 1.5 : 0.6;
+                player.coins[coin].price *= manipulation;
+                if(player.coins[coin].price < 0.0001) player.coins[coin].price = 0.0001;
+            }
+        }
+
+        function buyCoin(coin) {
+            if(player.cash >= player.coins[coin].price) {
+                player.coins[coin].qty++;
+                player.cash -= player.coins[coin].price;
+                updateDisplay();
+            }
+        }
+
+        function sellCoin(coin) {
+            if(player.coins[coin].qty > 0) {
+                player.coins[coin].qty--;
+                player.cash += player.coins[coin].price;
+                updateDisplay();
+            }
+        }
+
+        function takeLoan() {
+            player.cash += 5000;
+            player.debt += 5000;
+            log("Loan shark gives you $5k... better pay back soon!", 'red');
+        }
+
+        function hireTiktokers() {
+            if(player.cash >= 1000) {
+                player.cash -= 1000;
+                manipulatePrices();
+                log("TikTokers pump the market! 📈 Prices surge!", 'green');
+                updateDisplay();
+            }
+        }
+
+        function hackExchange() {
+            if(Math.random() > 0.3) {
+                player.cash += 2000;
+                log("Successfully hacked exchange! 💰 +$2000", 'green');
+            } else {
+                player.cash -= 3000;
+                log("Hack failed! 🚨 Fined $3000", 'red');
+            }
+            updateDisplay();
+        }
+
+        function nextDay() {
+            player.day++;
+            // Apply loan shark interest
+            player.debt *= 1.55;
+            
+            // Random price changes
+            for(let coin in player.coins) {
+                player.coins[coin].price *= (Math.random() * 2);
+            }
+
+            // Random events
+            if(Math.random() > 0.7) {
+                log("SEC investigation! All prices drop 80% 📉", 'red');
+                for(let coin in player.coins) {
+                    player.coins[coin].price *= 0.2;
+                }
+            }
+
+            updateDisplay();
+        }
+
+        updateDisplay();
+    </script>
+</body>
 </html>
