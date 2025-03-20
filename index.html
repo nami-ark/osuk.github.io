@@ -1,115 +1,136 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Degenerate Crypto Simulator</title>
+    <title>Degenerate Crypto Simulator 3000</title>
     <style>
-        @keyframes pump {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        @keyframes thirst {
+            0% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+            100% { transform: rotate(-5deg); }
         }
-        .pump { animation: pump 0.5s; }
-        .bought { background: #2f2f2f !important; }
-        .unlockable { border: 2px solid #ff69b4; padding: 10px; margin: 10px 0; }
-        .crypto-bro { width: 50px; transition: transform 0.3s; }
+        .thirst-trap {
+            animation: thirst 1s infinite;
+            cursor: pointer;
+            font-size: 2em;
+        }
+        .money-rain {
+            position: fixed;
+            pointer-events: none;
+            font-size: 24px;
+            animation: rain 5s linear;
+        }
+        @keyframes rain {
+            from { top: -100px; opacity: 1; }
+            to { top: 100vh; opacity: 0; }
+        }
     </style>
 </head>
 <body>
-    <!-- Previous game structure remains -->
-    
-    <div class="unlockable">
-        <h3>💎 Lifestyle Upgrades:</h3>
-        <button onclick="buyUpgrade('cryptoBro')" 
-                data-cost="50000" 
-                title="Hire shillers to auto-promote your bags">
-            Crypto Bros Army - $50k
-        </button>
-        
-        <button onclick="buyUpgrade('privateJet')" 
-                data-cost="200000" 
-                title="Flex on normies while your coins moon">
-            NFT Private Jet - $200k
-        </button>
-        
-        <button onclick="buyUpgrade('actress')" 
-                data-cost="1000000" 
-                title="Celebrity endorsement package">
-            "Crypto Queen" Collab - $1M
-        </button>
-    </div>
+    <div id="game">
+        <!-- Previous elements remain -->
+        <div class="unlockable">
+            <h3>🤑 Dark Pattern Upgrades:</h3>
+            <button onclick="buyThirstTrap('CryptoBaddie')" class="thirst-trap" 
+                    data-cost="500000" data-multiplier="3">
+                💋 "Blockchain Baddie" Collab (+300% pumps)
+            </button>
+            
+            <button onclick="buyThirstTrap('MoonMami')" class="thirst-trap"
+                    data-cost="1000000" data-multiplier="5">
+                🌙 "Moon Mami" OnlyFans Token (+500% volume)
+            </button>
 
-    <div id="animContainer"></div>
+            <button onclick="buyMoneyLaunder()" 
+                    data-cost="2500000">
+                🚁 Golden Choppers Package (Wash $1M/day)
+            </button>
+        </div>
+
+        <div id="darkPatterns">
+            <button onclick="createFakeVolume()">📈 Pump-n-Dump Bot Army</button>
+            <button onclick="insiderTrade()">👂 CEO Bedroom Secrets (Insider Trading)</button>
+        </div>
+    </div>
 
     <script>
         // Add to player object
-        player.upgrades = {
-            cryptoBro: 0,
-            privateJet: false,
-            actress: false
+        player.dark = {
+            thirstTraps: [],
+            laundered: 0,
+            fakeVolume: 0
         };
-        
-        player.passiveIncome = 0;
+        player.multipliers = 1;
 
-        // Add after updateDisplay()
-        function generateFloatingBro() {
-            const bro = document.createElement('img');
-            bro.src = 'https://i.imgur.com/3QZ7Z1C.png';
-            bro.className = 'crypto-bro';
-            bro.style.position = 'fixed';
-            bro.style.left = Math.random() * 80 + '%';
-            bro.style.top = '-100px';
-            document.body.appendChild(bro);
-            
-            setTimeout(() => {
-                bro.style.transform = `translateY(${window.innerHeight + 200}px) rotate(${Math.random() * 360}deg)`;
-                setTimeout(() => bro.remove(), 5000);
-            }, 100);
-        }
-
-        // Modified buy/sell with animations
-        function buyCoin(coin) {
-            if(player.cash >= player.coins[coin].price) {
-                document.querySelector(`button[onclick="buyCoin('${coin}')"]`).classList.add('pump');
-                setTimeout(() => document.querySelector(`button[onclick="buyCoin('${coin}')"]`).classList.remove('pump'), 500);
-                // Rest of buy logic
+        // Add money rain animation
+        function createMoneyRain() {
+            for(let i = 0; i < 50; i++) {
+                const money = document.createElement('div');
+                money.className = 'money-rain';
+                money.textContent = ['💸','💵','🤑'][Math.floor(Math.random()*3)];
+                money.style.left = Math.random() * 95 + '%';
+                document.body.appendChild(money);
+                setTimeout(() => money.remove(), 5000);
             }
         }
 
-        // Add new functions
-        function buyUpgrade(type) {
-            const cost = parseInt(document.querySelector(`button[onclick="buyUpgrade('${type}')"]`).dataset.cost);
+        // New unethical functions
+        function buyThirstTrap(type) {
+            const cost = parseInt(event.target.dataset.cost);
             if(player.cash >= cost) {
                 player.cash -= cost;
-                if(type === 'cryptoBro') player.upgrades.cryptoBro++;
-                else player.upgrades[type] = true;
-                
-                document.querySelector(`button[onclick="buyUpgrade('${type}')"]`).classList.add('bought');
-                generateFloatingBro();
-                
-                switch(type) {
-                    case 'cryptoBro':
-                        player.passiveIncome += 1000;
-                        break;
-                    case 'privateJet':
-                        for(let coin in player.coins) {
-                            player.coins[coin].price *= 1.5;
-                        }
-                        break;
-                    case 'actress':
-                        setInterval(() => {
-                            player.cash += player.passiveIncome;
-                            updateDisplay();
-                        }, 5000);
-                        break;
-                }
+                player.multipliers *= parseFloat(event.target.dataset.multiplier);
+                player.dark.thirstTraps.push(type);
+                event.target.disabled = true;
+                createMoneyRain();
+                log(`🚨 ${type} joined your harem! All gains x${player.multipliers}`, '#ff69b4');
                 updateDisplay();
             }
         }
 
-        // Add to nextDay()
-        if(player.upgrades.cryptoBro > 0) {
-            player.cash += player.upgrades.cryptoBro * 1500;
-            log(`${player.upgrades.cryptoBro} crypto bros shilled your coins!`, '#ff00ff');
+        function createFakeVolume() {
+            player.dark.fakeVolume += 20;
+            player.cash -= 5000;
+            log(`🤖 Created ${player.dark.fakeVolume}% fake volume!`, '#00ffff');
+            Array.from(document.getElementsByClassName('pump')).forEach(e => e.remove());
+            for(let i = 0; i < 10; i++) {
+                const bot = document.createElement('div');
+                bot.textContent = '🤖';
+                bot.className = 'pump';
+                bot.style.position = 'fixed';
+                bot.style.left = Math.random() * 95 + '%';
+                bot.style.top = Math.random() * 95 + '%';
+                document.body.appendChild(bot);
+            }
+            updateDisplay();
+        }
+
+        function insiderTrade() {
+            if(Math.random() > 0.4) {
+                player.cash *= 3;
+                log("💼 Insider trading success! 3x cash!", 'gold');
+            } else {
+                player.cash = 0;
+                log("👮♂️ Caught by SEC! All assets seized!", 'red');
+            }
+            updateDisplay();
+        }
+
+        // Modified nextDay() with dark patterns
+        function nextDay() {
+            // Existing code
+            
+            // Dark pattern bonuses
+            if(player.dark.laundered > 0) {
+                player.cash += 1000000 * player.multipliers;
+                log(`💰 Washed $${(1000000*player.multipliers).toLocaleString()} through offshore accounts`, '#00ff00');
+            }
+            
+            // Thirst trap passive income
+            player.dark.thirstTraps.forEach(trap => {
+                player.cash += 50000 * player.multipliers;
+                document.getElementById('animContainer').innerHTML += 
+                    `<div class="thirst-trap">${['💋','👙','🍑'][Math.floor(Math.random()*3)]}</div>`;
+            });
         }
     </script>
 </body>
