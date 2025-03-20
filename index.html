@@ -1,159 +1,145 @@
-<!-- Add to CSS -->
-<style>
-    .progress-bar {
-        width: 200px;
-        height: 20px;
-        background: #333;
-        margin: 5px 0;
-    }
-    .progress-fill {
-        height: 100%;
-        background: #0f0;
-        transition: width 0.3s;
-    }
-    .particles {
-        position: absolute;
-        pointer-events: none;
-    }
-</style>
-
-<!-- Add to game div -->
-<div class="unlockable">
-    <h3>🦾 Automation Upgrades</h3>
-    <div>
-        <button onclick="buyBot('shillBot')" data-cost="50000">
-            Shill Bots (Auto-Pump Tweets) - $50k 
-            <span id="shillBotCount">0</span>
-        </button>
-        <div class="progress-bar">
-            <div class="progress-fill" id="shillBotProgress"></div>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Degenerate Clicker</title>
+    <style>
+        /* Add character animations */
+        @keyframes moneyRain {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+        .money-emoji {
+            position: fixed;
+            pointer-events: none;
+            animation: moneyRain 2s linear;
+        }
+        #mainCharacter {
+            cursor: pointer;
+            transition: transform 0.1s;
+            width: 150px;
+            margin: 20px;
+        }
+        .clicked {
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+<body>
+    <!-- Add clickable character -->
+    <div style="text-align: center">
+        <img id="mainCharacter" src="https://i.imgur.com/3QZ7Z1C.png" 
+             onclick="clickMogul()" 
+             title="CLICK TO GRIND APES">
     </div>
 
-    <div>
-        <button onclick="buyBot('rugBot')" data-cost="200000">
-            Rug Pull Bots (Auto-Exit Scam) - $200k 
-            <span id="rugBotCount">0</span>
+    <!-- Add to upgrades section -->
+    <div class="unlockable">
+        <h3>🤑 Hustle Crew</h3>
+        <button onclick="buyHustler('CryptoBarbie')" data-cost="5000">
+            Crypto Barbie (Auto-Clicks 1/sec) - $5k <span id="barbieCount">0</span>
         </button>
-        <div class="progress-bar">
-            <div class="progress-fill" id="rugBotProgress"></div>
-        </div>
+        <button onclick="buyHustler('BlockchainBecky')" data-cost="25000">
+            Blockchain Becky (+100% Click Power) - $25k <span id="beckyCount">0</span>
+        </button>
+        <button onclick="buyHustler('RugPullRandy')" data-cost="1e6">
+            Rug Pull Randy (Steal From Investors) - $1M <span id="randyCount">0</span>
+        </button>
     </div>
-
-    <button onclick="prestige()" id="prestigeBtn" style="display:none;">
-        💣 Execute Rug Pull (Reset for 2x Multiplier!)
-    </button>
-</div>
 
 <script>
 // Add to player object
-player.bots = {
-    shillBot: { count: 0, progress: 0 },
-    rugBot: { count: 0, progress: 0 }
-};
-player.multiplier = 1;
-player.totalEarnings = 0;
-player.milestones = {
-    1e6: false,
-    1e7: false,
-    1e9: false
+player.clickPower = 1;
+player.hustlers = {
+    CryptoBarbie: 0,
+    BlockchainBecky: 0,
+    RugPullRandy: 0
 };
 
-// Add particle effect
-function createParticles(x, y) {
-    const particles = document.createElement('div');
-    particles.className = 'particles';
-    for(let i = 0; i < 5; i++) {
-        const p = document.createElement('div');
-        p.style = `position:absolute;width:2px;height:2px;background:#0f0;
-                   left:${x}px;top:${y}px;transform:translate(
-                       ${Math.random()*20-10}px,
-                       ${Math.random()*20-10}px);`;
-        particles.appendChild(p);
-    }
-    document.body.appendChild(particles);
-    setTimeout(() => particles.remove(), 1000);
+// Add money click effect
+function createMoneyEffect(x, y) {
+    const money = document.createElement('div');
+    money.textContent = '💸';
+    money.className = 'money-emoji';
+    money.style.left = x + 'px';
+    money.style.top = y + 'px';
+    document.body.appendChild(money);
+    setTimeout(() => money.remove(), 2000);
 }
 
-// Add to updateDisplay()
-document.getElementById('shillBotCount').textContent = player.bots.shillBot.count;
-document.getElementById('rugBotCount').textContent = player.bots.rugBot.count;
-document.getElementById('shillBotProgress').style.width = 
-    `${player.bots.shillBot.progress}%`;
-document.getElementById('rugBotProgress').style.width = 
-    `${player.bots.rugBot.progress}%`;
-
-// Auto-bot actions
-setInterval(() => {
-    if(player.bots.shillBot.count > 0) {
-        player.bots.shillBot.progress += 2;
-        if(player.bots.shillBot.progress >= 100) {
-            manipulatePrices();
-            createParticles(100, 100);
-            player.bots.shillBot.progress = 0;
-            log("Shill bots pumped the market! 🚀", '#0f0');
-        }
-    }
+// Core click mechanic
+function clickMogul() {
+    // Visual feedback
+    document.getElementById('mainCharacter').classList.add('clicked');
+    setTimeout(() => {
+        document.getElementById('mainCharacter').classList.remove('clicked');
+    }, 100);
     
-    if(player.bots.rugBot.count > 0) {
-        player.bots.rugBot.progress += 1;
-        if(player.bots.rugBot.progress >= 100) {
-            player.cash += player.coins.RugPullToken.price * 100 * player.multiplier;
-            player.coins.RugPullToken.price *= 0.1;
-            createParticles(300, 100);
-            player.bots.rugBot.progress = 0;
-            log("Rug bots dumped bags! 💰", '#f00');
-        }
-    }
-}, 100);
+    // Calculate earnings
+    const earnings = player.clickPower * 
+                     (1 + player.hustlers.BlockchainBecky) * 
+                     player.multiplier;
+    player.cash += earnings;
+    
+    // Visual effects
+    createMoneyEffect(event.clientX, event.clientY);
+    log(`+$${earnings.toFixed(2)} from grinding!`, '#ffd700');
+    updateDisplay();
+}
 
-function buyBot(type) {
-    const cost = parseInt(document.querySelector(`button[onclick="buyBot('${type}')"]`)
-        .dataset.cost) * player.multiplier;
+// Auto-clickers
+setInterval(() => {
+    player.cash += player.hustlers.CryptoBarbie * 
+                  player.clickPower * 
+                  player.multiplier;
+    if(player.hustlers.CryptoBarbie > 0) {
+        log(`Crypto Barbie crew grinding $${(player.hustlers.CryptoBarbie * player.clickPower).toFixed(2)}`, '#ff69b4');
+    }
+}, 1000);
+
+// Dark pattern hustle upgrades
+function buyHustler(type) {
+    const cost = parseInt(document.querySelector(`button[onclick="buyHustler('${type}')"]`)
+        .dataset.cost * player.multiplier;
     
     if(player.cash >= cost) {
         player.cash -= cost;
-        player.bots[type].count++;
+        player.hustlers[type]++;
+        
+        switch(type) {
+            case 'BlockchainBecky':
+                player.clickPower *= 2;
+                break;
+            case 'RugPullRandy':
+                player.debt += 100000;
+                player.cash += 500000;
+                log("Randy dumped on retail investors! 💰", '#ff0000');
+                break;
+        }
+        
         updateDisplay();
+        document.getElementById(`${type.toLowerCase()}Count`).textContent = 
+            player.hustlers[type];
     }
 }
 
-// Prestige system
-function prestige() {
-    if(confirm("Wipe everything for permanent 2x multiplier?")) {
-        player = {
-            cash: 10000,
-            debt: 0,
-            day: 1,
-            multiplier: player.multiplier * 2,
-            coins: {
-                'DogeElonMars': { price: 0.5, qty: 0 },
-                'ShibaKaren': { price: 0.3, qty: 0 },
-                'ScamCoin': { price: 10, qty: 0 },
-                'RugPullToken': { price: 100, qty: 0 }
-            },
-            bots: { shillBot: { count: 0 }, rugBot: { count: 0 } }
-        };
-        document.getElementById('prestigeBtn').style.display = 'none';
-        updateDisplay();
+// Add arrest risk
+function checkPolice() {
+    if(player.debt > 1e6 && Math.random() < 0.1) {
+        if(!player.upgrades.privateJet) {
+            alert("🚨 INTERPOL ARRESTED YOU! Game Over");
+            player.cash = 0;
+            player.debt = 0;
+        } else {
+            log("Used private jet to escape justice! ✈️", '#00ffff');
+        }
     }
 }
 
-// Milestone unlocks
-function checkMilestones() {
-    player.totalEarnings += player.cash;
-    
-    if(player.totalEarnings >= 1e6 && !player.milestones[1e6]) {
-        player.coins["MoonLamboCoin"] = { price: 1000, qty: 0 };
-        log("Unlocked MoonLamboCoin! 🚗", '#ff0');
-        player.milestones[1e6] = true;
-    }
-    
-    if(player.totalEarnings >= 1e7) {
-        document.getElementById('prestigeBtn').style.display = 'block';
-    }
+// Update existing nextDay()
+function nextDay() {
+    checkPolice();
+    // ... rest of original logic ...
 }
-
-// Add to nextDay() after price changes
-checkMilestones();
 </script>
+</body>
+</html>
