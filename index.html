@@ -1,137 +1,159 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Degenerate Crypto Simulator 3000</title>
-    <style>
-        @keyframes thirst {
-            0% { transform: rotate(-5deg); }
-            50% { transform: rotate(5deg); }
-            100% { transform: rotate(-5deg); }
-        }
-        .thirst-trap {
-            animation: thirst 1s infinite;
-            cursor: pointer;
-            font-size: 2em;
-        }
-        .money-rain {
-            position: fixed;
-            pointer-events: none;
-            font-size: 24px;
-            animation: rain 5s linear;
-        }
-        @keyframes rain {
-            from { top: -100px; opacity: 1; }
-            to { top: 100vh; opacity: 0; }
-        }
-    </style>
-</head>
-<body>
-    <div id="game">
-        <!-- Previous elements remain -->
-        <div class="unlockable">
-            <h3>🤑 Dark Pattern Upgrades:</h3>
-            <button onclick="buyThirstTrap('CryptoBaddie')" class="thirst-trap" 
-                    data-cost="500000" data-multiplier="3">
-                💋 "Blockchain Baddie" Collab (+300% pumps)
-            </button>
-            
-            <button onclick="buyThirstTrap('MoonMami')" class="thirst-trap"
-                    data-cost="1000000" data-multiplier="5">
-                🌙 "Moon Mami" OnlyFans Token (+500% volume)
-            </button>
+<!-- Add to CSS -->
+<style>
+    .progress-bar {
+        width: 200px;
+        height: 20px;
+        background: #333;
+        margin: 5px 0;
+    }
+    .progress-fill {
+        height: 100%;
+        background: #0f0;
+        transition: width 0.3s;
+    }
+    .particles {
+        position: absolute;
+        pointer-events: none;
+    }
+</style>
 
-            <button onclick="buyMoneyLaunder()" 
-                    data-cost="2500000">
-                🚁 Golden Choppers Package (Wash $1M/day)
-            </button>
-        </div>
-
-        <div id="darkPatterns">
-            <button onclick="createFakeVolume()">📈 Pump-n-Dump Bot Army</button>
-            <button onclick="insiderTrade()">👂 CEO Bedroom Secrets (Insider Trading)</button>
+<!-- Add to game div -->
+<div class="unlockable">
+    <h3>🦾 Automation Upgrades</h3>
+    <div>
+        <button onclick="buyBot('shillBot')" data-cost="50000">
+            Shill Bots (Auto-Pump Tweets) - $50k 
+            <span id="shillBotCount">0</span>
+        </button>
+        <div class="progress-bar">
+            <div class="progress-fill" id="shillBotProgress"></div>
         </div>
     </div>
 
-    <script>
-        // Add to player object
-        player.dark = {
-            thirstTraps: [],
-            laundered: 0,
-            fakeVolume: 0
+    <div>
+        <button onclick="buyBot('rugBot')" data-cost="200000">
+            Rug Pull Bots (Auto-Exit Scam) - $200k 
+            <span id="rugBotCount">0</span>
+        </button>
+        <div class="progress-bar">
+            <div class="progress-fill" id="rugBotProgress"></div>
+        </div>
+    </div>
+
+    <button onclick="prestige()" id="prestigeBtn" style="display:none;">
+        💣 Execute Rug Pull (Reset for 2x Multiplier!)
+    </button>
+</div>
+
+<script>
+// Add to player object
+player.bots = {
+    shillBot: { count: 0, progress: 0 },
+    rugBot: { count: 0, progress: 0 }
+};
+player.multiplier = 1;
+player.totalEarnings = 0;
+player.milestones = {
+    1e6: false,
+    1e7: false,
+    1e9: false
+};
+
+// Add particle effect
+function createParticles(x, y) {
+    const particles = document.createElement('div');
+    particles.className = 'particles';
+    for(let i = 0; i < 5; i++) {
+        const p = document.createElement('div');
+        p.style = `position:absolute;width:2px;height:2px;background:#0f0;
+                   left:${x}px;top:${y}px;transform:translate(
+                       ${Math.random()*20-10}px,
+                       ${Math.random()*20-10}px);`;
+        particles.appendChild(p);
+    }
+    document.body.appendChild(particles);
+    setTimeout(() => particles.remove(), 1000);
+}
+
+// Add to updateDisplay()
+document.getElementById('shillBotCount').textContent = player.bots.shillBot.count;
+document.getElementById('rugBotCount').textContent = player.bots.rugBot.count;
+document.getElementById('shillBotProgress').style.width = 
+    `${player.bots.shillBot.progress}%`;
+document.getElementById('rugBotProgress').style.width = 
+    `${player.bots.rugBot.progress}%`;
+
+// Auto-bot actions
+setInterval(() => {
+    if(player.bots.shillBot.count > 0) {
+        player.bots.shillBot.progress += 2;
+        if(player.bots.shillBot.progress >= 100) {
+            manipulatePrices();
+            createParticles(100, 100);
+            player.bots.shillBot.progress = 0;
+            log("Shill bots pumped the market! 🚀", '#0f0');
+        }
+    }
+    
+    if(player.bots.rugBot.count > 0) {
+        player.bots.rugBot.progress += 1;
+        if(player.bots.rugBot.progress >= 100) {
+            player.cash += player.coins.RugPullToken.price * 100 * player.multiplier;
+            player.coins.RugPullToken.price *= 0.1;
+            createParticles(300, 100);
+            player.bots.rugBot.progress = 0;
+            log("Rug bots dumped bags! 💰", '#f00');
+        }
+    }
+}, 100);
+
+function buyBot(type) {
+    const cost = parseInt(document.querySelector(`button[onclick="buyBot('${type}')"]`)
+        .dataset.cost) * player.multiplier;
+    
+    if(player.cash >= cost) {
+        player.cash -= cost;
+        player.bots[type].count++;
+        updateDisplay();
+    }
+}
+
+// Prestige system
+function prestige() {
+    if(confirm("Wipe everything for permanent 2x multiplier?")) {
+        player = {
+            cash: 10000,
+            debt: 0,
+            day: 1,
+            multiplier: player.multiplier * 2,
+            coins: {
+                'DogeElonMars': { price: 0.5, qty: 0 },
+                'ShibaKaren': { price: 0.3, qty: 0 },
+                'ScamCoin': { price: 10, qty: 0 },
+                'RugPullToken': { price: 100, qty: 0 }
+            },
+            bots: { shillBot: { count: 0 }, rugBot: { count: 0 } }
         };
-        player.multipliers = 1;
+        document.getElementById('prestigeBtn').style.display = 'none';
+        updateDisplay();
+    }
+}
 
-        // Add money rain animation
-        function createMoneyRain() {
-            for(let i = 0; i < 50; i++) {
-                const money = document.createElement('div');
-                money.className = 'money-rain';
-                money.textContent = ['💸','💵','🤑'][Math.floor(Math.random()*3)];
-                money.style.left = Math.random() * 95 + '%';
-                document.body.appendChild(money);
-                setTimeout(() => money.remove(), 5000);
-            }
-        }
+// Milestone unlocks
+function checkMilestones() {
+    player.totalEarnings += player.cash;
+    
+    if(player.totalEarnings >= 1e6 && !player.milestones[1e6]) {
+        player.coins["MoonLamboCoin"] = { price: 1000, qty: 0 };
+        log("Unlocked MoonLamboCoin! 🚗", '#ff0');
+        player.milestones[1e6] = true;
+    }
+    
+    if(player.totalEarnings >= 1e7) {
+        document.getElementById('prestigeBtn').style.display = 'block';
+    }
+}
 
-        // New unethical functions
-        function buyThirstTrap(type) {
-            const cost = parseInt(event.target.dataset.cost);
-            if(player.cash >= cost) {
-                player.cash -= cost;
-                player.multipliers *= parseFloat(event.target.dataset.multiplier);
-                player.dark.thirstTraps.push(type);
-                event.target.disabled = true;
-                createMoneyRain();
-                log(`🚨 ${type} joined your harem! All gains x${player.multipliers}`, '#ff69b4');
-                updateDisplay();
-            }
-        }
-
-        function createFakeVolume() {
-            player.dark.fakeVolume += 20;
-            player.cash -= 5000;
-            log(`🤖 Created ${player.dark.fakeVolume}% fake volume!`, '#00ffff');
-            Array.from(document.getElementsByClassName('pump')).forEach(e => e.remove());
-            for(let i = 0; i < 10; i++) {
-                const bot = document.createElement('div');
-                bot.textContent = '🤖';
-                bot.className = 'pump';
-                bot.style.position = 'fixed';
-                bot.style.left = Math.random() * 95 + '%';
-                bot.style.top = Math.random() * 95 + '%';
-                document.body.appendChild(bot);
-            }
-            updateDisplay();
-        }
-
-        function insiderTrade() {
-            if(Math.random() > 0.4) {
-                player.cash *= 3;
-                log("💼 Insider trading success! 3x cash!", 'gold');
-            } else {
-                player.cash = 0;
-                log("👮♂️ Caught by SEC! All assets seized!", 'red');
-            }
-            updateDisplay();
-        }
-
-        // Modified nextDay() with dark patterns
-        function nextDay() {
-            // Existing code
-            
-            // Dark pattern bonuses
-            if(player.dark.laundered > 0) {
-                player.cash += 1000000 * player.multipliers;
-                log(`💰 Washed $${(1000000*player.multipliers).toLocaleString()} through offshore accounts`, '#00ff00');
-            }
-            
-            // Thirst trap passive income
-            player.dark.thirstTraps.forEach(trap => {
-                player.cash += 50000 * player.multipliers;
-                document.getElementById('animContainer').innerHTML += 
-                    `<div class="thirst-trap">${['💋','👙','🍑'][Math.floor(Math.random()*3)]}</div>`;
-            });
-        }
-    </script>
-</body>
-</html>
+// Add to nextDay() after price changes
+checkMilestones();
+</script>
